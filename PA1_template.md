@@ -174,10 +174,12 @@ median(imputed_steps_day$total)
 hist(imputed_steps_day$total,
      breaks = c(seq(from = 0, to = 25000, by = 2500)),
      ylim = c(0,25),
-     main = "Daily step count",
+     main = "Daily step count (imputed data)",
      xlab = "Total steps per day")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+As you can see, the mean and median total steps per day increase after imputation. Additionally, from the histogram you can see that the distribution of the data becomes more normally distributed. There is a big drop in the frequency of days with total steps between 0-2500.
 
 ## Are there differences in activity patterns between weekdays and weekends?
