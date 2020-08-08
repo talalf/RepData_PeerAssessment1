@@ -1,20 +1,8 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
-
-``` {R}
 require(tidyverse)
 require(dplyr)
 require(ggplot2)
 require(lubridate)
-```
 
-
-## Loading and preprocessing the data
-```{R}
 # read data
 unzip("activity.zip")
 activitydata <- read_csv("activity.csv")
@@ -31,19 +19,5 @@ steps_day <-
         summarise(activitydata, 
                   mean = mean(steps, 
                               na.rm = TRUE))
-```
-## What is mean total number of steps taken per day?
-``` {R}
+# produce histogram
 hist(steps_day$mean)
-```
-
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
