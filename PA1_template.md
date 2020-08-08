@@ -183,3 +183,35 @@ hist(imputed_steps_day$total,
 As you can see, the mean and median total steps per day increase after imputation. Additionally, from the histogram you can see that the distribution of the data becomes more normally distributed. There is a big drop in the frequency of days with total steps between 0-2500.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
+```r
+# check for weekend differences
+
+# add day variable and weekend variable
+activity_impute <- activity_impute %>% 
+        mutate(day = weekdays(date))
+
+for(i in 1:nrow(activity_impute)) {
+        ifelse(activity_impute[i,"day"] == "Saturday" | activity_impute[i,"day"] == "Sunday",
+               activity_impute[i,"weekend"] <- "Weekend",
+               activity_impute[i,"weekend"] <- "Weekday"
+        )
+}
+
+# grouping by interval then by weekend or weekday status
+activity_impute <- activity_impute %>%
+        group_by(interval,weekend)
+
+# calculating means for each interval per weekend/weekday status
+grouped_imputed_data <- activity_impute %>% 
+        summarise(mean_daily_steps = mean(steps))
+
+# graphing
+ggplot(data = grouped_imputed_data, aes(x = interval,y = mean_daily_steps)) +
+        geom_line() +
+        facet_wrap(~weekend, ncol = 1) +
+        labs(x = "Interval", y = "Number of steps")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->

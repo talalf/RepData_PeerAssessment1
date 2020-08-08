@@ -69,3 +69,43 @@ activity_impute <- group_by(activity_impute, date)
 
 imputed_steps_day <- summarise(activity_impute,
                                total = sum(steps))
+
+# report mean and median daily step counts of imputed data
+
+mean(imputed_steps_day$total)
+median(imputed_steps_day$total)
+
+# produce a histogram
+
+hist(imputed_steps_day$total,
+     breaks = c(seq(from = 0, to = 25000, by = 2500)),
+     ylim = c(0,25),
+     main = "Daily step count (imputed data)",
+     xlab = "Total steps per day")
+
+# check for weekend differences
+
+# add day variable and weekend variable
+activity_impute <- activity_impute %>% 
+        mutate(day = weekdays(date))
+
+for(i in 1:nrow(activity_impute)) {
+        ifelse(activity_impute[i,"day"] == "Saturday" | activity_impute[i,"day"] == "Sunday",
+               activity_impute[i,"weekend"] <- "Weekend",
+               activity_impute[i,"weekend"] <- "Weekday"
+        )
+}
+
+# grouping by interval then by weekend or weekday status
+activity_impute <- activity_impute %>%
+        group_by(interval,weekend)
+
+# calculating means for each interval per weekend/weekday status
+grouped_imputed_data <- activity_impute %>% 
+        summarise(mean_daily_steps = mean(steps))
+
+# graphing
+ggplot(data = grouped_imputed_data, aes(x = interval,y = mean_daily_steps)) +
+        geom_line() +
+        facet_wrap(~weekend, ncol = 1) +
+        labs(x = "Interval", y = "Number of steps")
