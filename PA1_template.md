@@ -7,51 +7,12 @@ output:
 
 
 ```r
+# load required packages
 require(tidyverse)
-```
-
-```
-## Loading required package: tidyverse
-```
-
-```
-## -- Attaching packages ------------------ tidyverse 1.3.0 --
-```
-
-```
-## v ggplot2 3.3.2     v purrr   0.3.4
-## v tibble  3.0.3     v dplyr   1.0.1
-## v tidyr   1.1.1     v stringr 1.4.0
-## v readr   1.3.1     v forcats 0.5.0
-```
-
-```
-## -- Conflicts --------------------- tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-```
-
-```r
 require(dplyr)
 require(ggplot2)
 require(lubridate)
 ```
-
-```
-## Loading required package: lubridate
-```
-
-```
-## 
-## Attaching package: 'lubridate'
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     date, intersect, setdiff, union
-```
-
 
 ## Loading and preprocessing the data
 
@@ -59,21 +20,10 @@ require(lubridate)
 # read data
 unzip("activity.zip")
 activitydata <- read_csv("activity.csv")
-```
 
-```
-## Parsed with column specification:
-## cols(
-##   steps = col_double(),
-##   date = col_date(format = ""),
-##   interval = col_double()
-## )
-```
-
-```r
 activitydata$date <- 
         activitydata$date %>%
-        ymd() # make date the correct format with lubridate
+        ymd() # formate date with lubridate
 
 # group by date
 activitydata <- group_by(activitydata, date)
@@ -82,27 +32,152 @@ activitydata <- group_by(activitydata, date)
 steps_day <- 
         summarise(activitydata, 
                   mean = mean(steps, 
+                              na.rm = TRUE),
+                  total = sum(steps,
                               na.rm = TRUE))
 ```
 
-```
-## `summarise()` ungrouping output (override with `.groups` argument)
-```
-## What is mean total number of steps taken per day?
+## What is mean and median total number of steps taken per day?
+
+The mean and median total daily steps are calculated and shown below.
+
 
 ```r
-hist(steps_day$mean)
+mean(steps_day$total, na.rm = TRUE)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+```
+## [1] 9354.23
+```
 
+```r
+median(steps_day$total, na.rm = TRUE)
+```
+
+```
+## [1] 10395
+```
+
+A histogram of daily step counts is shown below
+
+
+```r
+hist(steps_day$total,
+     breaks = c(seq(from = 0, to = 25000, by = 2500)),
+     ylim = c(0,20),
+     main = "Daily step count",
+     xlab = "Total steps per day")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ## What is the average daily activity pattern?
 
+```r
+# group by time interval
+activitydata <- group_by(activitydata, interval)
 
+steps_interval <-
+        summarise(activitydata,
+                  mean = mean(steps,
+                              na.rm = TRUE))
+
+# produce a plot of mean no. of steps per time interval
+barplot(steps_interval$mean,
+        names.arg = steps_interval$interval,
+        xlab = "Interval",
+        ylab = "Number of steps",
+        main = "Mean number of steps per interval")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+
+```r
+# identify the interval with the highest mean no. of steps
+
+steps_interval %>%
+        filter(mean == max(mean)) %>%
+        select(interval)
+```
+
+```
+## # A tibble: 1 x 1
+##   interval
+##      <dbl>
+## 1      835
+```
+
+The above shows that interval 835 has the highest mean number of steps out of all the intervals.
 
 ## Imputing missing values
 
+The number of rows with missing data is calculated below.
 
+
+```r
+# count number of rows with missing data
+sum(is.na(activitydata$steps))
+```
+
+```
+## [1] 2304
+```
+
+Next, missing "steps" values are replaced by the mean value of steps for that particular interval. The imputed data is stored in a new dataframe called "activity_impute".
+
+
+```r
+# impute missing data
+
+activity_impute <- activitydata
+
+for(i in 1:nrow(activity_impute)) {
+        if(is.na(activity_impute[i,"steps"])) {
+                intv <- as.numeric(activity_impute[i,"interval"])
+                activity_impute[i,"steps"] = as.numeric(steps_interval[steps_interval$interval==intv,"mean"])
+        }
+}
+```
+
+For the new imputed data, the below code will summarise daily step counts, calculate mean and median daily step counts and produce a histogram.
+
+
+```r
+# group by date
+activity_impute <- group_by(activity_impute, date)
+
+# summarise total steps per day
+
+imputed_steps_day <- summarise(activity_impute,
+                               total = sum(steps))
+
+# report mean and median daily step counts of imputed data
+
+mean(imputed_steps_day$total)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+median(imputed_steps_day$total)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+# produce a histogram
+
+hist(imputed_steps_day$total,
+     breaks = c(seq(from = 0, to = 25000, by = 2500)),
+     ylim = c(0,25),
+     main = "Daily step count",
+     xlab = "Total steps per day")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
 
 ## Are there differences in activity patterns between weekdays and weekends?
